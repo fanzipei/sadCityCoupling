@@ -7,7 +7,7 @@ from munkres import Munkres
 
 num_day = 61
 num_time = 72
-num_u = 200
+num_u = 250
 num_loc_o = 2000
 num_loc_t = 1850
 max_iter = 200
@@ -15,7 +15,14 @@ gamma = 0.005
 
 
 def load_sparse_matrix(filename, num_loc, is_gaussian):
-    Ytd = np.zeros([num_time, num_u, num_loc], dtype=np.float) + 0.0005
+    max_uidx = 0
+    with open(filename, 'r') as f:
+        for uidx_str, lidx_str, tidx_str in csv.reader(f):
+            uidx = int(uidx_str)
+            if uidx > max_uidx:
+                max_uidx = uidx
+
+    Ytd = np.zeros([num_time, max_uidx, num_loc], dtype=np.float) + 0.1
     with open(filename, 'r') as f:
         for uidx_str, lidx_str, tidx_str in csv.reader(f):
             uidx = int(uidx_str)
@@ -54,10 +61,10 @@ def dirichlet_process(P, XO, XT):
         for d in xrange(1, 32):
             if m == 6 and d == 31:
                 continue
-            filename_t = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/tokyo/sorted/2012{:02d}{:02d}.csv'.format(m, d)
+            filename_t = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/tokyo/discretized/2012{:02d}{:02d}.csv'.format(m, d)
             print 'Reading {}'.format(filename_t)
             data_t.append(load_sparse_matrix(filename_t, num_loc_t, True))
-            filename_o = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/sorted/2012{:02d}{:02d}.csv'.format(m, d)
+            filename_o = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/discretized/2012{:02d}{:02d}.csv'.format(m, d)
             print 'Reading {}'.format(filename_o)
             data_o.append(load_sparse_matrix(filename_o, num_loc_o, False))
 
@@ -71,8 +78,8 @@ def dirichlet_process(P, XO, XT):
         # else:
             # Ytd = load_sparse_matrix('./tokyo_traj200/201207{:02d}.csv'.format(d-29), num_loc_t, True)
             # Yod = load_sparse_matrix('./osaka_traj200/201207{:02d}.csv'.format(d-29), num_loc_o, False)
-        Ytd = data_t[d][np.random.choice(data_t[d].shape[0], 250, replace=False)]
-        Yod = data_o[d][np.random.choice(data_o[d].shape[0], 250, replace=False)]
+        Ytd = data_t[d][:, np.random.choice(data_t[d].shape[0], num_u, replace=False), :]
+        Yod = data_o[d][:, np.random.choice(data_o[d].shape[0], num_u, replace=False), :]
         Yoe = np.log(Ytd.dot(P.T) + 1e-30)
         score = np.zeros([num_u, num_u])
         print 'Building Score Matrix'
@@ -98,8 +105,8 @@ def dirichlet_process(P, XO, XT):
 
 def main():
     P = np.genfromtxt('./P_tokyo2osaka.csv', delimiter=',')
-    XO = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/aggregated_mobilitygraph_large/node.csv', delimiter=',', dtype=np.float)
-    XT = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/tokyo/aggregated_mobilitygraph_large/node.csv', delimiter=',', dtype=np.float)
+    XO = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/node_osaka.csv', delimiter=',', dtype=np.float)
+    XT = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/node_tokyo.csv', delimiter=',', dtype=np.float)
     XO /= np.sum(XO, axis=0)
     XT /= np.sum(XT, axis=0)
     print P.shape
