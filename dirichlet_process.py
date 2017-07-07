@@ -3,6 +3,7 @@
 
 import numpy as np
 import csv
+import random
 from munkres import Munkres
 
 num_day = 61
@@ -14,18 +15,27 @@ max_iter = 200
 gamma = 0.005
 
 
-def load_sparse_matrix(filename, num_loc, is_gaussian):
-    max_uidx = 0
+def load_data(filename, num_loc, is_gaussian):
+    user_traj = dict({})
     with open(filename, 'r') as f:
         for uidx_str, lidx_str, tidx_str in csv.reader(f):
             uidx = int(uidx_str)
-            if uidx > max_uidx:
-                max_uidx = uidx
+            lidx = int(lidx_str)
+            tidx = int(tidx_str)
+            if uidx not in user_traj:
+                user_traj[uidx] = []
+            user_traj[uidx].append((lidx, tidx))
+    for uidx in user_traj:
+        if len(user_traj[uidx]) < 5:
+            del user_traj[uidx]
 
-    Ytd = np.zeros([num_time, max_uidx, num_loc], dtype=np.float) + 0.1
-    with open(filename, 'r') as f:
-        for uidx_str, lidx_str, tidx_str in csv.reader(f):
-            uidx = int(uidx_str)
+    return user_traj
+
+
+def load_sparse_matrix(data_batch, num_loc, is_gaussian):
+    Ytd = np.zeros([num_time, num_u, num_loc], dtype=np.float) + 0.01
+    for uidx in xrange(data_batch):
+        for lidx_str, tidx_str in data_batch[uidx]:
             lidx = int(lidx_str)
             tidx = int(tidx_str) / 2
             Ytd[(tidx, uidx, lidx)] += 1.0
@@ -63,23 +73,18 @@ def dirichlet_process(P, XO, XT):
                 continue
             filename_t = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/tokyo/discretized/2012{:02d}{:02d}.csv'.format(m, d)
             print 'Reading {}'.format(filename_t)
-            data_t.append(load_sparse_matrix(filename_t, num_loc_t, True))
+            data_t.append(load_data(filename_t, num_loc_t, True))
             filename_o = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/discretized/2012{:02d}{:02d}.csv'.format(m, d)
             print 'Reading {}'.format(filename_o)
-            data_o.append(load_sparse_matrix(filename_o, num_loc_o, False))
+            data_o.append(load_data(filename_o, num_loc_o, False))
 
 
     for i in xrange(max_iter):
         d = np.random.randint(num_day)
-        # print 'Read {}th files'.format(d+1)
-        # if d < 30:
-            # Ytd = load_sparse_matrix('./tokyo_traj200/201206{:02d}.csv'.format(d+1), num_loc_t, True)
-            # Yod = load_sparse_matrix('./osaka_traj200/201206{:02d}.csv'.format(d+1), num_loc_o, False)
-        # else:
-            # Ytd = load_sparse_matrix('./tokyo_traj200/201207{:02d}.csv'.format(d-29), num_loc_t, True)
-            # Yod = load_sparse_matrix('./osaka_traj200/201207{:02d}.csv'.format(d-29), num_loc_o, False)
-        Ytd = data_t[d][:, np.random.choice(data_t[d].shape[0], num_u, replace=False), :]
-        Yod = data_o[d][:, np.random.choice(data_o[d].shape[0], num_u, replace=False), :]
+        data_t_batch = random.sample(data_t[d].values(), num_u)
+        data_o_batch = random.sample(data_o[d].values(), num_u)
+        Ytd = load_sparse_matrix(data_t_batch, num_loc_t, True)
+        Yod = load_sparse_matrix(data_o_batch, num_loc_o, False)
         Yoe = np.log(Ytd.dot(P.T) + 1e-30)
         score = np.zeros([num_u, num_u])
         print 'Building Score Matrix'
