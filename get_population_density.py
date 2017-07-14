@@ -110,7 +110,7 @@ for m in xrange(6, 8):
         if m == 6 and d == 31:
             continue
         with open('/media/fan/HDPC-UT/ZDC/TrainingForMapping/tokyo/sorted/2012{:02d}{:02d}.csv'.format(m, d), 'r') as f:
-            for uid_str, time_str, lat_str, lon_str in csv.reader(f):
+            for uid_str, lat_str, lon_str, time_str in csv.reader(f):
                 uid = int(uid_str)
                 lat = float(lat_str)
                 lon = float(lon_str)
@@ -126,33 +126,33 @@ for m in xrange(6, 8):
 
 np.savetxt('node_tokyo.csv', population_density, delimiter=',')
 
-lat_min = lat_min_o
-lon_min = lon_min_o
-lat_max = lat_max_o
-lon_max = lon_max_o
-num_dislat = int((lat_max - lat_min + 1e-6) / 0.008)
-num_dislon = int((lon_max - lon_min + 1e-6) / 0.010)
+# lat_min = lat_min_o
+# lon_min = lon_min_o
+# lat_max = lat_max_o
+# lon_max = lon_max_o
+# num_dislat = int((lat_max - lat_min + 1e-6) / 0.008)
+# num_dislon = int((lon_max - lon_min + 1e-6) / 0.010)
 
-population_density = np.zeros([num_dislat * num_dislon, num_time * num_days])
-init_time = time.mktime(time.strptime('2012-05-31 23:50:00','%Y-%m-%d %H:%M:%S'))
+# population_density = np.zeros([num_dislat * num_dislon, num_time * num_days])
+# init_time = time.mktime(time.strptime('2012-05-31 23:50:00','%Y-%m-%d %H:%M:%S'))
 
-for m in xrange(6, 8):
-    for d in xrange(1, 32):
-        if m == 6 and d == 31:
-            continue
-        with open('/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/sorted/2012{:02d}{:02d}.csv'.format(m, d), 'r') as f:
-            for uid_str, time_str, lat_str, lon_str in csv.reader(f):
-                uid = int(uid_str)
-                lat = float(lat_str)
-                lon = float(lon_str)
-                if lat < lat_min or lat >= lat_max or lon < lon_min or lon >= lon_max:
-                    continue
-                lid = get_loc_idx(lat, lon, lat_min, lon_min, lat_max, lon_max, num_dislat)
-                tstamp = time.mktime(time.strptime(time_str,'%Y-%m-%d %H:%M:%S'))
-                tid = int((tstamp - init_time) / dt)
-                if tid >= num_time * num_days or tid < 0:
-                    print time_str
-                    continue
-                population_density[lid, tid] += 1.0
+# for m in xrange(6, 8):
+    # for d in xrange(1, 32):
+        # if m == 6 and d == 31:
+            # continue
+        # with open('/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/sorted/2012{:02d}{:02d}.csv'.format(m, d), 'r') as f:
+            # for uid_str, time_str, lat_str, lon_str in csv.reader(f):
+                # uid = int(uid_str)
+                # lat = float(lat_str)
+                # lon = float(lon_str)
+                # if lat < lat_min or lat >= lat_max or lon < lon_min or lon >= lon_max:
+                    # continue
+                # lid = get_loc_idx(lat, lon, lat_min, lon_min, lat_max, lon_max, num_dislat)
+                # tstamp = time.mktime(time.strptime(time_str,'%Y-%m-%d %H:%M:%S'))
+                # tid = int((tstamp - init_time) / dt)
+                # if tid >= num_time * num_days or tid < 0:
+                    # print time_str
+                    # continue
+                # population_density[lid, tid] += 1.0
 
-np.savetxt('node_osaka.csv', population_density, delimiter=',')
+# np.savetxt('node_osaka.csv', population_density, delimiter=',')

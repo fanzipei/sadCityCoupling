@@ -32,6 +32,7 @@ def get_loc_idx(lat, lon, lat_min, lon_min, lat_max, lon_max, num_dislat):
 
     return dis_lat + dis_lon * num_dislat
 
+
 lat_min = lat_min_t
 lon_min = lon_min_t
 lat_max = lat_max_t

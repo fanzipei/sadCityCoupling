@@ -9,7 +9,7 @@ from munkres import Munkres
 num_day = 61
 num_time = 72
 num_u = 250
-num_loc_o = 2000
+num_loc_o = 1600
 num_loc_t = 1850
 max_iter = 200
 gamma = 0.005
@@ -80,7 +80,7 @@ def dirichlet_process(P, XO, XT):
         filename_t = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/tokyo/discretized/2012{:02d}{:02d}.csv'.format(m, d)
         print 'Reading {}'.format(filename_t)
         data_t = load_data(filename_t, num_loc_t, True)
-        filename_o = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/osaka/discretized/2012{:02d}{:02d}.csv'.format(m, d)
+        filename_o = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/nagoya/discretized/2012{:02d}{:02d}.csv'.format(m, d)
         print 'Reading {}'.format(filename_o)
         data_o = load_data(filename_o, num_loc_o, False)
 
@@ -112,16 +112,16 @@ def dirichlet_process(P, XO, XT):
 
 
 def main():
-    P = np.genfromtxt('./P_tokyo2osaka.csv', delimiter=',')
+    P = np.genfromtxt('./P_tokyo2nagoya.csv', delimiter=',')
     print P.shape
-    XO = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/node_osaka.csv', delimiter=',', dtype=np.float)
+    XO = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/node_nagoya.csv', delimiter=',', dtype=np.float)
     XT = np.genfromtxt('/media/fan/HDPC-UT/ZDC/TrainingForMapping/node_tokyo.csv', delimiter=',', dtype=np.float)
     XO /= np.sum(XO, axis=0)
     XT /= np.sum(XT, axis=0)
     print P.shape
     for i, P, dP in dirichlet_process(P, XO, XT):
         print 'Iteration {}'.format(i)
-        np.savetxt('./dp_rst/P_.csv', P, delimiter=',')
+        np.savetxt('./dp_rst/P_t2n.csv', P, delimiter=',')
         # np.savetxt('./dp_rst/dP_ITER{}.csv'.format(i), dP, delimiter=',')
 
 
